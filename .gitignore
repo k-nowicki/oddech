@@ -1,0 +1,17 @@
+/target/
+/Sample/
+*.mkv
+*.mp4
+*.mov
+*.onnx
+!/models/respiro-en.onnx
+*.bin
+*.oddech.json
+/training/.venv/
+/training/data/
+__pycache__/
+*.oddech.reference.json
+/training/vendor/
+/dist/
+/packaging/cache/
+/packaging/out/

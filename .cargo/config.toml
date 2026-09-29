@@ -1,0 +1,8 @@
+# Build environment of whisper.cpp (feature `whisper`, see DECISIONS.md,
+# "CUDA i GPU"); has no effect on the default build.
+[env]
+# System CUDA 12.0's nvcc supports GCC ≤ 12; the default GCC 13 is rejected.
+CMAKE_CUDA_HOST_COMPILER = "/usr/bin/g++-12"
+# RTX 4060 Ti (Ada, sm_89). Building for one architecture keeps whisper.cpp
+# compile time reasonable.
+CMAKE_CUDA_ARCHITECTURES = "89"

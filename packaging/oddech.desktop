@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Oddech
+Comment=Wykrywanie i ściszanie wdechów w nagraniach wideo
+Exec=oddech %f
+Icon=oddech
+Terminal=false
+Categories=AudioVideo;Audio;AudioVideoEditing;
+MimeType=video/x-matroska;video/mp4;video/quicktime;video/webm;video/x-msvideo;
+StartupWMClass=oddech

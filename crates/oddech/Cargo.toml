@@ -1,0 +1,35 @@
+[package]
+name = "oddech"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Wykrywanie i ściszanie wdechów w nagraniach wideo"
+
+[dependencies]
+oddech-core.workspace = true
+oddech-media.workspace = true
+oddech-playback.workspace = true
+oddech-detect.workspace = true
+anyhow.workspace = true
+crossbeam-channel.workspace = true
+directories.workspace = true
+eframe.workspace = true
+egui.workspace = true
+env_logger.workspace = true
+log.workspace = true
+rayon.workspace = true
+rfd.workspace = true
+raw-window-handle = "0.6"
+# Only for features: on Wayland, window decorations in the Adwaita style
+# (GNOME does not draw them for applications), and libwayland loaded at run
+# time, so the program also starts where it is missing (X11 only).
+winit = { version = "0.30", default-features = false, features = ["wayland-csd-adwaita", "wayland-dlopen"] }
+serde.workspace = true
+serde_json.workspace = true
+
+[features]
+whisper = ["oddech-detect/whisper"]
+
+[dev-dependencies]
+tempfile.workspace = true

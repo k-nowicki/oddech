@@ -1,0 +1,19 @@
+[package]
+name = "oddech-playback"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+oddech-core.workspace = true
+cpal.workspace = true
+rubato.workspace = true
+rtrb.workspace = true
+arc-swap.workspace = true
+crossbeam-channel.workspace = true
+log.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

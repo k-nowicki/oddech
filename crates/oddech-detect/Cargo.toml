@@ -1,0 +1,25 @@
+[package]
+name = "oddech-detect"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+oddech-core.workspace = true
+log.workspace = true
+realfft.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+ureq = { version = "3", optional = true }
+whisper-rs = { version = "0.16", features = ["cuda", "log_backend"], optional = true }
+ort = { version = "=2.0.0-rc.13", default-features = false, features = ["std", "load-dynamic", "api-20", "cuda"] }
+
+[features]
+# Speech transcription (whisper.cpp with CUDA). Not used by detection; off by
+# default because it links against the CUDA runtime at start-up.
+whisper = ["dep:whisper-rs", "dep:ureq"]
+
+[dev-dependencies]
+env_logger.workspace = true
+serde_json.workspace = true

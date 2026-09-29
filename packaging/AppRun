@@ -1,0 +1,5 @@
+#!/bin/sh
+# AppImage entry point: the AppDir is laid out like an installed Oddech
+# (the program with lib/ and models/ next to it).
+here=$(dirname "$(readlink -f "$0")")
+exec "$here/oddech" "$@"

@@ -1,0 +1,85 @@
+# Pushing a tag vX.Y.Z builds the packages and publishes them as the
+# release of that tag. See README.md, "Wydania".
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  packages:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CONTAINER_ENGINE: docker
+    steps:
+      - uses: actions/checkout@v4
+
+      # vX.Y.Z publishes a release; vX.Y.Z-anything (e.g. -rc1) a pre-release.
+      - name: Tag matches the version in Cargo.toml
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          case $GITHUB_REF_NAME in
+            "v$version") echo "PRERELEASE=" >> "$GITHUB_ENV" ;;
+            "v$version"-*) echo "PRERELEASE=--prerelease" >> "$GITHUB_ENV" ;;
+            *) echo "::error::tag $GITHUB_REF_NAME, Cargo.toml has $version"; exit 1 ;;
+          esac
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      # The build needs ~20 GB; the runner image has less free by default.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Download cache
+        uses: actions/cache@v4
+        with:
+          path: packaging/cache/downloads
+          key: downloads-${{ hashFiles('packaging/versions.sh') }}
+
+      - name: Cargo registry cache
+        uses: actions/cache@v4
+        with:
+          path: packaging/cache/cargo-registry
+          key: cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: cargo-
+
+      - name: Build packages
+        run: packaging/build.sh
+
+      - name: Checksums
+        working-directory: packaging/out
+        run: sha256sum * > SHA256SUMS
+
+      - name: Publish release
+        run: |
+          cat > notes.md <<EOF
+          | Plik | Dla kogo |
+          |---|---|
+          | \`oddech_${VERSION}_amd64.deb\` | Debian, Ubuntu i pochodne (od Ubuntu 22.04 / Debiana 12) |
+          | \`oddech-cuda_${VERSION}_amd64.deb\` | dodatek do \`.deb\`: wykrywanie na karcie NVIDIA (sterownik 525 lub nowszy) |
+          | \`Oddech-${VERSION}-x86_64.AppImage\` | pozostałe dystrybucje |
+
+          Instalacja i wymagania: [README](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/README.md#instalacja).
+          EOF
+          gh release create "$GITHUB_REF_NAME" packaging/out/* \
+            --title "Oddech ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag $PRERELEASE
+
+      # Downloads that disappear upstream (see packaging/versions.sh) are
+      # kept in the release "build-deps", so older tags still build.
+      - name: Mirror downloads
+        run: |
+          source packaging/versions.sh
+          gh release view build-deps >/dev/null 2>&1 ||
+            gh release create build-deps --prerelease --title "Zależności budowania" \
+              --notes "Kopie plików pobieranych przez packaging/build.sh, które znikają ze źródła. Nie do instalacji."
+          name=${FFMPEG_URL##*/}
+          if ! gh release view build-deps --json assets --jq '.assets[].name' | grep -qxF "$name"; then
+            cp packaging/cache/downloads/ffmpeg.tar.xz "$name"
+            gh release upload build-deps "$name"
+          fi
